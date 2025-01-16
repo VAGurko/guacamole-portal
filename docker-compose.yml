@@ -1,18 +1,18 @@
 services:
-  ${APP_SUFFIX}-guacd:
-    container_name: ${APP_SUFFIX}-guacd
+  guacd:
+    container_name: guacd
     image: ${IMAGE_GUACD}
     restart: unless-stopped
     env_file:
       - .env
     networks:
-      - ${APP_SUFFIX}-network
+      - guac-network
 
-  ${APP_SUFFIX}-guacamole:
-    container_name: ${APP_SUFFIX}-guacamole
+  guacamole:
+    container_name: guacamole
     depends_on:
-      - ${APP_SUFFIX}-guacd
-      - ${APP_SUFFIX}-postgres
+      - guacd
+      - postgres
     image: ${IMAGE_GUACAMOLE}
     volumes:
       - ./conf/guacamole/server.xml:/usr/local/tomcat/conf/server.xml
@@ -23,10 +23,10 @@ services:
     env_file:
       - .env
     networks:
-      - ${APP_SUFFIX}-network
+      - guac-network
 
-  ${APP_SUFFIX}-postgres:
-    container_name: ${APP_SUFFIX}-postgres
+  postgres:
+    container_name: postgres
     image: ${IMAGE_POSTGRES}
     restart: unless-stopped
     env_file:
@@ -38,10 +38,10 @@ services:
 #    ports:
 #      - ${PG_PORT}:5432
     networks:
-      - ${APP_SUFFIX}-network
+      - guac-network
 
-  ${APP_SUFFIX}-nginx:
-   container_name: ${APP_SUFFIX}-nginx
+  nginx:
+   container_name: nginx
    restart: unless-stopped
    env_file:
      - .env
@@ -53,13 +53,13 @@ services:
    ports:
      - ${NGX_HTTPS_PORT}:443
    depends_on:
-     - ${APP_SUFFIX}-guacamole
+     - guacamole
    networks:
-     - ${APP_SUFFIX}-network
+     - guac-network
 
 networks:
-  ${APP_SUFFIX}-network:
-    name: ${APP_SUFFIX}-network
+  guac-network:
+    name: guac-network
     driver: bridge
     ipam:
       config:
