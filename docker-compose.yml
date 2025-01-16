@@ -1,0 +1,68 @@
+services:
+  ${APP_SUFFIX}-guacd:
+    container_name: ${APP_SUFFIX}-guacd
+    image: ${IMAGE_GUACD}
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - ${APP_SUFFIX}-network
+
+  ${APP_SUFFIX}-guacamole:
+    container_name: ${APP_SUFFIX}-guacamole
+    depends_on:
+      - ${APP_SUFFIX}-guacd
+      - ${APP_SUFFIX}-postgres
+    image: ${IMAGE_GUACAMOLE}
+    volumes:
+      - ./conf/guacamole/server.xml:/usr/local/tomcat/conf/server.xml
+# Disable the comment below to enable access to the port
+#    ports:
+#      - 8080:8080/tcp
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - ${APP_SUFFIX}-network
+
+  ${APP_SUFFIX}-postgres:
+    container_name: ${APP_SUFFIX}-postgres
+    image: ${IMAGE_POSTGRES}
+    restart: unless-stopped
+    env_file:
+      - .postgres_env
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d:z
+      - ./data:/var/lib/postgresql/data:Z
+# Disable the comment below to enable access to the port
+#    ports:
+#      - ${PG_PORT}:5432
+    networks:
+      - ${APP_SUFFIX}-network
+
+  ${APP_SUFFIX}-nginx:
+   container_name: ${APP_SUFFIX}-nginx
+   restart: unless-stopped
+   env_file:
+     - .env
+   image: ${IMAGE_NGINX}
+   volumes:
+     - ./nginx/templates:/etc/nginx/templates:ro
+     - ./nginx/ssl:/etc/nginx/ssl:ro
+     - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+   ports:
+     - ${NGX_HTTPS_PORT}:443
+# Disable the comment below to enable access to the port
+#     - ${NGX_HTTP_PORT}:80
+   depends_on:
+     - ${APP_SUFFIX}-guacamole
+   networks:
+     - ${APP_SUFFIX}-network
+
+networks:
+  ${APP_SUFFIX}-network:
+    name: ${APP_SUFFIX}-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${DOCKER_NETWORK}

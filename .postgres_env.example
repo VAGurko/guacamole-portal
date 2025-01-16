@@ -1,0 +1,7 @@
+# PostgreSQL configuration
+PGDATA=/var/lib/postgresql/data/guacamole
+POSTGRES_DB="guacamole_db"
+POSTGRES_USER="guacamole_user"
+POSTGRES_PASSWORD="guacamole_password_very_difficult"
+# External postgres port
+PG_PORT=5432
